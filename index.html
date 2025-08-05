@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Live Stream & Record</title>
+  <title>Live Stream & Record (Back Camera)</title>
 </head>
 <body>
-  <h2>📸 Live Camera Stream + Recording</h2>
+  <h2>📸 Live Camera Stream (Back) + Recording</h2>
 
   <video id="video" autoplay playsinline width="640" height="480"></video>
   <br>
@@ -22,26 +22,30 @@
     let mediaRecorder;
     let recordedChunks = [];
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        video.srcObject = stream;
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { exact: "environment" } }, // Use back camera
+      audio: true
+    })
+    .then(stream => {
+      video.srcObject = stream;
 
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = event => {
-          if (event.data.size > 0) {
-            recordedChunks.push(event.data);
-          }
-        };
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(recordedChunks, { type: 'video/webm' });
-          const url = URL.createObjectURL(blob);
-          downloadLink.href = url;
-          downloadLink.style.display = 'inline';
-        };
-      })
-      .catch(err => {
-        console.error("Camera error:", err);
-      });
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = event => {
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        downloadLink.href = url;
+        downloadLink.style.display = 'inline';
+      };
+    })
+    .catch(err => {
+      console.error("Camera access error:", err);
+      alert("Back camera not available. Try using the default camera or check permissions.");
+    });
 
     startBtn.onclick = () => {
       recordedChunks = [];
@@ -58,4 +62,3 @@
   </script>
 </body>
 </html>
-
