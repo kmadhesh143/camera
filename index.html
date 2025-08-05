@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Stream & Record</title>
+</head>
+<body>
+  <h2>📸 Live Camera Stream + Recording</h2>
+
+  <video id="video" autoplay playsinline width="640" height="480"></video>
+  <br>
+
+  <button id="startBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop & Download</button>
+  <a id="downloadLink" style="display:none;" download="recording.webm">Download Video</a>
+
+  <script>
+    const video = document.getElementById('video');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const downloadLink = document.getElementById('downloadLink');
+
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        video.srcObject = stream;
+
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = event => {
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+          downloadLink.style.display = 'inline';
+        };
+      })
+      .catch(err => {
+        console.error("Camera error:", err);
+      });
+
+    startBtn.onclick = () => {
+      recordedChunks = [];
+      mediaRecorder.start();
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    };
+
+    stopBtn.onclick = () => {
+      mediaRecorder.stop();
+      stopBtn.disabled = true;
+      startBtn.disabled = false;
+    };
+  </script>
+</body>
+</html>
+
